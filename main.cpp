@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 
     // Generates MQTT cliend ID from user's parameter in MQTT_server_setting.h
     std::string mqtt_client_id = 
-            std::string{"projects/"} + GOOGLE_PROJECT_ID + "/locations/"
+            std::string("projects/") + GOOGLE_PROJECT_ID + "/locations/"
             + GOOGLE_REGION + "/registries/" + GOOGLE_REGISTRY + "/devices/" + GOOGLE_DEVICE_ID;
 
     /* Establish a MQTT connection. */
@@ -155,9 +155,9 @@ int main(int argc, char* argv[])
 
     // Generates topic names from user's setting in MQTT_server_setting.h
     std::string mqtt_topic_pub = 
-            std::string{"/devices/"} + GOOGLE_DEVICE_ID + "/events";
+            std::string("/devices/") + GOOGLE_DEVICE_ID + "/events";
     std::string mqtt_topic_sub =
-            std::string{"/devices/"} + GOOGLE_DEVICE_ID + "/config";
+            std::string("/devices/") + GOOGLE_DEVICE_ID + "/config";
 
     /* Subscribe a topic. */
     bool isSubscribed = false;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
     printf("To send a packet, push the button 1 on your board.\r\n");
 
     // Compose a message for the first time.
-    std::string initStr = std::string{"{\"cloudRegion\":\""} + GOOGLE_REGION + "\",\"deviceId\":\"" 
+    std::string initStr = std::string("{\"cloudRegion\":\"") + GOOGLE_REGION + "\",\"deviceId\":\"" 
                 + GOOGLE_DEVICE_ID + ",\"registryId\":\"" + GOOGLE_REGISTRY + "\",\"hops\":1}"; 
     char* buf = (char*)initStr.c_str();
 
