@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
     // Compose a message for the first time.
     std::string initStr = std::string("{\"cloudRegion\":\"") + GOOGLE_REGION + "\",\"deviceId\":\"" 
-                + GOOGLE_DEVICE_ID + ",\"registryId\":\"" + GOOGLE_REGISTRY + "\",\"hops\":1}"; 
+                + GOOGLE_DEVICE_ID + "\",\"registryId\":\"" + GOOGLE_REGISTRY + "\",\"hops\":1}"; 
     char* buf = (char*)initStr.c_str();
 
     /* Main loop */
@@ -199,7 +199,11 @@ int main(int argc, char* argv[])
             isMessageArrived = false;
             printf("\r\nMessage arrived:\r\n%s\r\n", messageBuffer);
             // Save the message to resend when the button is pushed.
-            buf = messageBuffer;
+            // If the received message contains the word "hops", use it.
+            // Otherwise ignore.
+            if(strstr(messageBuffer, "hops") != NULL) {
+                buf = messageBuffer;
+            }
         }
         /* Button is pushed - publish a message. */
         if(isPublish) {
