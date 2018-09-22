@@ -37,6 +37,7 @@
 #include "mbed_events.h"
 #include "NTPClient.h"
 #include "jwtgen.h"
+#include "mbedtls/error.h"
 
 #define MQTT_MAX_CONNECTIONS     5
 #define MQTT_MAX_PACKET_SIZE  1024
