@@ -117,7 +117,19 @@ int main(int argc, char* argv[])
         int rc = mqttNetwork->connect(MQTT_SERVER_HOST_NAME, MQTT_SERVER_PORT, SSL_CA_PEM,
                 SSL_CLIENT_CERT_PEM, SSL_CLIENT_PRIVATE_KEY_PEM);
         if (rc != MQTT::SUCCESS){
-            printf("ERROR: rc from TCP connect is %d\r\n", rc);
+            const int MAX_TLS_ERROR_CODE = -0x1000;
+            // Network error
+            if((MAX_TLS_ERROR_CODE < rc) && (rc < 0)) {
+                // TODO: implement converting an error code into message.
+                printf("ERROR from MQTTNetwork connect is %d.", rc);
+            }
+            // TLS error - mbedTLS error codes starts from -0x1000 to -0x8000.
+            if(rc <= MAX_TLS_ERROR_CODE) {
+                const int buf_size = 256;
+                char *buf = new char[buf_size];
+                mbedtls_strerror(rc, buf, buf_size);
+                printf("TLS ERROR (%d) : %s\r\n", rc, buf);
+            }
             return -1;
         }
     }
