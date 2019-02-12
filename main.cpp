@@ -28,7 +28,6 @@
 #define MQTTCLIENT_QOS1 0
 #define MQTTCLIENT_QOS2 0
 
-#include "easy-connect.h"
 #include "MQTTNetwork.h"
 #include "MQTTmbed.h"
 #include "MQTTClient.h"
@@ -71,11 +70,13 @@ int main(int argc, char* argv[])
     
     const float version = 0.1;
 
-    NetworkInterface* network = NULL;
-
     DigitalOut led_red(LED_RED, LED_OFF);
     DigitalOut led_green(LED_GREEN, LED_OFF);
     DigitalOut led_blue(LED_BLUE, LED_OFF);
+
+    NetworkInterface* network = NULL;
+    MQTTNetwork* mqttNetwork = NULL;
+    MQTT::Client<MQTTNetwork, Countdown, MQTT_MAX_PACKET_SIZE, MQTT_MAX_CONNECTIONS>* mqttClient = NULL;
 
     printf("Mbed to Google IoT Cloud: version is %.2f\r\n", version);
     printf("\r\n");
@@ -85,15 +86,21 @@ int main(int argc, char* argv[])
 
     printf("Opening network interface...\r\n");
     {
-        network = easy_connect(true);    // If true, prints out connection details.
+        network = NetworkInterface::get_default_instance();
         if (!network) {
-            printf("Unable to open network interface.\r\n");
+            printf("Error! No network inteface found.\n");
+            return -1;
+        }
+
+        printf("Connecting to network\n");
+        nsapi_size_or_error_t ret = network->connect();
+        if (ret) {
+            printf("Unable to connect! returned %d\n", ret);
             return -1;
         }
     }
     printf("Network interface opened successfully.\r\n");
     printf("\r\n");
-
 
     /* NTP - Get the current time. Required to generate JWT. */
     NTPClient ntp(network);
@@ -111,7 +118,6 @@ int main(int argc, char* argv[])
     printf("JWT:\r\n%s\r\n\r\n", password);
 
     /* Establish a network connection. */
-    MQTTNetwork* mqttNetwork = NULL;
     printf("Connecting to host %s:%d ...\r\n", MQTT_SERVER_HOST_NAME, MQTT_SERVER_PORT);
     {
         mqttNetwork = new MQTTNetwork(network);
@@ -143,7 +149,6 @@ int main(int argc, char* argv[])
             + GOOGLE_REGION + "/registries/" + GOOGLE_REGISTRY + "/devices/" + GOOGLE_DEVICE_ID;
 
     /* Establish a MQTT connection. */
-    MQTT::Client<MQTTNetwork, Countdown, MQTT_MAX_PACKET_SIZE, MQTT_MAX_CONNECTIONS>* mqttClient = NULL;
     printf("MQTT client is connecting to the service ...\r\n");
     {
         MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
