@@ -12,7 +12,8 @@
             "target.features_add": ["NANOSTACK", "LOWPAN_ROUTER", "COMMON_PAL"],
             "mbed-trace.enable": null,
             "platform.stdio-baud-rate": 115200,
-            "platform.stdio-convert-newlines": false
+            "platform.stdio-convert-newlines": false,
+            "mbed-mqtt.max-packet-size": "1024"
            },
         "RZ_A1H": {
             "target.macros_add": ["MBEDTLS_TEST_NULL_ENTROPY", "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES"]

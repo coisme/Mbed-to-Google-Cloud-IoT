@@ -28,9 +28,8 @@
 #define MQTTCLIENT_QOS1 0
 #define MQTTCLIENT_QOS2 0
 
-#include "MQTTNetwork.h"
-#include "MQTTmbed.h"
-#include "MQTTClient.h"
+#include "TLSSocket.h"
+#include "MQTTClientMbedOs.h"
 #include "MQTT_server_setting.h"
 #include "mbed-trace/mbed_trace.h"
 #include "mbed_events.h"
@@ -75,8 +74,8 @@ int main(int argc, char* argv[])
     DigitalOut led_blue(LED_BLUE, LED_OFF);
 
     NetworkInterface* network = NULL;
-    MQTTNetwork* mqttNetwork = NULL;
-    MQTT::Client<MQTTNetwork, Countdown, MQTT_MAX_PACKET_SIZE, MQTT_MAX_CONNECTIONS>* mqttClient = NULL;
+    TLSSocket *socket = new TLSSocket;
+    MQTTClient* mqttClient = NULL;
 
     printf("Mbed to Google IoT Cloud: version is %.2f\r\n", version);
     printf("\r\n");
@@ -120,23 +119,24 @@ int main(int argc, char* argv[])
     /* Establish a network connection. */
     printf("Connecting to host %s:%d ...\r\n", MQTT_SERVER_HOST_NAME, MQTT_SERVER_PORT);
     {
-        mqttNetwork = new MQTTNetwork(network);
-        int rc = mqttNetwork->connect(MQTT_SERVER_HOST_NAME, MQTT_SERVER_PORT, SSL_CA_PEM,
-                SSL_CLIENT_CERT_PEM, SSL_CLIENT_PRIVATE_KEY_PEM);
-        if (rc != MQTT::SUCCESS){
-            const int MAX_TLS_ERROR_CODE = -0x1000;
-            // Network error
-            if((MAX_TLS_ERROR_CODE < rc) && (rc < 0)) {
-                // TODO: implement converting an error code into message.
-                printf("ERROR from MQTTNetwork connect is %d.", rc);
-            }
-            // TLS error - mbedTLS error codes starts from -0x1000 to -0x8000.
-            if(rc <= MAX_TLS_ERROR_CODE) {
-                const int buf_size = 256;
-                char *buf = new char[buf_size];
-                mbedtls_strerror(rc, buf, buf_size);
-                printf("TLS ERROR (%d) : %s\r\n", rc, buf);
-            }
+        nsapi_error_t ret = socket->open(network);
+        if (ret != NSAPI_ERROR_OK) {
+            printf("Could not open socket! Returned %d\n", ret);
+            return -1;
+        }
+        ret = socket->set_root_ca_cert(SSL_CA_PEM);
+        if (ret != NSAPI_ERROR_OK) {
+            printf("Could not set ca cert! Returned %d\n", ret);
+            return -1;
+        }
+        ret = socket->set_client_cert_key(SSL_CLIENT_CERT_PEM, SSL_CLIENT_PRIVATE_KEY_PEM);
+        if (ret != NSAPI_ERROR_OK) {
+            printf("Could not set keys! Returned %d\n", ret);
+            return -1;
+        }
+        ret = socket->connect(MQTT_SERVER_HOST_NAME, MQTT_SERVER_PORT);
+        if (ret != NSAPI_ERROR_OK) {
+            printf("Could not connect! Returned %d\n", ret);
             return -1;
         }
     }
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
         data.username.cstring = (char *)"ignored";
         data.password.cstring = (char *)password;
 
-        mqttClient = new MQTT::Client<MQTTNetwork, Countdown, MQTT_MAX_PACKET_SIZE, MQTT_MAX_CONNECTIONS>(*mqttNetwork);
+        mqttClient = new MQTTClient(socket);
         int rc = mqttClient->connect(data);
         if (rc != MQTT::SUCCESS) {
             printf("ERROR: rc from MQTT connect is %d\r\n", rc);
@@ -266,9 +266,9 @@ int main(int argc, char* argv[])
             mqttClient->disconnect();
         delete mqttClient;
     }
-    if(mqttNetwork) {
-        mqttNetwork->disconnect();
-        delete mqttNetwork;
+    if(socket) {
+        socket->close();
+        delete socket;
     }
     if(network) {
         network->disconnect();
