@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 {
     mbed_trace_init();
     
-    const float version = 0.1;
+    const float version = 1.0;
 
     DigitalOut led_red(LED_RED, LED_OFF);
     DigitalOut led_green(LED_GREEN, LED_OFF);
@@ -79,6 +79,10 @@ int main(int argc, char* argv[])
 
     printf("Mbed to Google IoT Cloud: version is %.2f\r\n", version);
     printf("\r\n");
+
+#ifdef MBED_MAJOR_VERSION
+    printf("Mbed OS version %d.%d.%d\n\n", MBED_MAJOR_VERSION, MBED_MINOR_VERSION, MBED_PATCH_VERSION);
+#endif
 
     // Turns on green LED to indicate processing initialization process
     led_green = LED_ON;
