@@ -5,6 +5,10 @@
     "config": {
         "main-stack-size": {
             "value": 8192
+        },
+        "user-button": {
+            "help": "Push Button to send a packet.",
+            "value": "BUTTON1"
         }
     },
     "target_overrides": {
@@ -28,6 +32,10 @@
         "NUCLEO_F411RE": {
             "esp8266-tx": "D8",
             "esp8266-rx": "D2"
+        },
+        "LPC1768": {
+            "target.macros_add": ["MBEDTLS_TEST_NULL_ENTROPY", "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES"],
+            "user-button": "D10"
         }
     }
 }
