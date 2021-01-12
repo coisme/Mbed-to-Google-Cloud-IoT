@@ -69,9 +69,9 @@ int main(int argc, char* argv[])
     
     const float version = 1.0;
 
-    DigitalOut led_red(LED_RED, LED_OFF);
-    DigitalOut led_green(LED_GREEN, LED_OFF);
-    DigitalOut led_blue(LED_BLUE, LED_OFF);
+    DigitalOut led_red(LED1, LED_OFF);
+    DigitalOut led_green(LED2, LED_OFF);
+    DigitalOut led_blue(LED3, LED_OFF);
 
     NetworkInterface* network = NULL;
     TLSSocket *socket = new TLSSocket;
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     printf("\r\n");
 
     // Enable button 1 for publishing a message.
-    InterruptIn btn1 = InterruptIn(BUTTON1);
+    InterruptIn btn1 = InterruptIn(MBED_CONF_APP_USER_BUTTON);
     btn1.rise(handleButtonRise);
     
     printf("To send a packet, push the button 1 on your board.\r\n");
